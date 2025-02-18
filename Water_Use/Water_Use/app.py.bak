@@ -1,0 +1,44 @@
+from flask import Flask,request, url_for, redirect, render_template
+import pickle
+import numpy as np
+
+app = Flask(__name__)
+
+model=pickle.load(open("D:/xampp\Water_Management\Water_Use/model.pkl", 'rb') )##+
+
+@app.route('/')
+def hello_world():
+    return render_template("Water_Use.html")
+
+
+@app.route('/predict',methods=['POST','GET'])
+def predict():
+    int_features=[int(x) for x in request.form.values()]
+    final=[np.array(int_features)]
+    print(int_features)
+    print(final)
+    prediction=model.predict(final)
+    #output='{0:.{1}f}'.format(prediction[0][1], 2)
+    output=prediction
+
+    # show the inputs and predicted outputs
+    for i in range( len( final ) ):
+        print( "X=%s, Predicted=%s" % (final[i], prediction[i]) )
+
+    #return   render_template( 'Loan_status.html',
+            #         pred=' {}'.format( output ),
+           #          bhai="" )
+    if output==0:
+        return render_template('Water_Use.html',pred=' "Not enough Water Use"'
+                                                       '\n Probability of  Solve insufficient Water Use  is {}'.format(prediction[0], 1).format(output),bhai="")
+    else:
+       return render_template('Water_Use.html',pred='\n "There is enough Water Use throughout the Year"'
+                                                      'Probability of Solve insufficient  Water Use  is {}'.format(prediction[0], 1)
+                              .format(output),bhai="")
+
+ #elif output == 6:
+  #      return render_template('forest_fire.html',
+   #                            pred='detention, abduction.\nCommunity conflict problem {}'.format(prediction[0], 1)
+    #                           .format(output), bhai="'")
+if __name__ == '__main__':
+    app.run(debug=True)

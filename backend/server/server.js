@@ -9,11 +9,11 @@ const util = require('util');
 const app = express();
 const PORT = 3000;
 
-// Middleware
+
 app.use(express.json());
 app.use(cors());
 
-// MySQL Connection
+
 const db = mysql.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
@@ -29,7 +29,7 @@ db.connect((err) => {
   console.log('Connected to MySQL successfully!');
 });
 
-// Utility function for fetching data
+
 const fetchDataFromTable = (weather_data, res) => {
   db.query(`SELECT * FROM ${weather_data}`, (err, results) => {
     if (err) {
@@ -41,16 +41,15 @@ const fetchDataFromTable = (weather_data, res) => {
   });
 };
 
-// REST API: ดึงข้อมูลจากแต่ละตาราง
-// Backend API - ดึงข้อมูลล่าสุดจากฐานข้อมูล
+
 app.get('/outdoor-data', (req, res) => {
   db.query('SELECT * FROM outdoor_data ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
       console.error('Error fetching outdoor data:', err.message);
       res.status(500).json({ error: 'Error fetching outdoor data' });
     } else {
-      console.log('Latest outdoor data:', results);  // ตรวจสอบข้อมูลที่ดึงออกมา
-      res.json(results[0]);  // ส่งข้อมูลล่าสุด
+      console.log('Latest outdoor data:', results);  
+      res.json(results[0]); 
     }
   });
 });
@@ -62,46 +61,46 @@ app.get('/indoor-data', (req, res) => {
       console.error('Error fetching indoor data:', err.message);
       res.status(500).json({ error: 'Error fetching indoor data' });
     } else {
-      res.json(results[0]);  // ส่งข้อมูลล่าสุด
+      res.json(results[0]);  
     }
   });
 });
-// API สำหรับ Solar and UVI
+
 app.get('/solar-and-uvi', (req, res) => {
   db.query('SELECT * FROM solar_and_uvi ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
       console.error('Error fetching solar and uvi data:', err.message);
       res.status(500).json({ error: 'Error fetching solar and uvi data' });
     } else {
-      console.log('Latest solar and uvi data:', results); // ตรวจสอบผลลัพธ์ที่ได้
-      res.json(results[0]); // ส่งข้อมูลล่าสุด
+      console.log('Latest solar and uvi data:', results); 
+      res.json(results[0]); 
     }
   });
 });
 
-// API สำหรับ Rainfall
+
 app.get('/rainfall-data', (req, res) => {
   db.query('SELECT * FROM rainfall_data ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
       console.error('Error fetching rainfall data:', err.message);
       res.status(500).json({ error: 'Error fetching rainfall data' });
     } else {
-      console.log('Latest rainfall data:', results); // ตรวจสอบผลลัพธ์ที่ได้
-      res.json(results[0]); // ส่งข้อมูลล่าสุด
+      console.log('Latest rainfall data:', results); 
+      res.json(results[0]); 
     }
   });
 });
 
 
 
-// WebSocket Server
+
 const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', (ws) => {
   console.log('Client connected to WebSocket');
   ws.send(JSON.stringify({ message: 'Connected to WebSocket Server!' }));
 
-  // ดึงข้อมูลจาก MySQL เมื่อเชื่อมต่อ WebSocket
+ 
   db.query(
     'SELECT * FROM outdoor_data ORDER BY timestamp DESC LIMIT 1',
     (err, results) => {
@@ -115,11 +114,11 @@ wss.on('connection', (ws) => {
     }
   );
 
-  // เมื่อได้รับข้อความจาก client
+  
   ws.on('message', (message) => {
     console.log('Received:', message);
 
-    // เมื่อได้รับคำสั่งจาก client, ดึงข้อมูลล่าสุดจาก MySQL
+    
     db.query(
       'SELECT * FROM outdoor_data ORDER BY timestamp DESC LIMIT 1',
       (err, results) => {
@@ -134,13 +133,13 @@ wss.on('connection', (ws) => {
     );
   });
 
-  // เมื่อ client ตัดการเชื่อมต่อ
+  
   ws.on('close', () => {
     console.log('Client disconnected');
   });
 });
 
-// ฟังก์ชั่นสำหรับดึงข้อมูลจาก API Ecowitt
+
 const apiUrl = 'https://api.ecowitt.net/api/v3/device/real_time';
 const params = {
   application_key: 'F4EAE399ED0BDAB7E0B03462D641DEB2',
@@ -149,7 +148,7 @@ const params = {
   call_back: 'all',
 };
 
-// ดึงข้อมูลจาก Ecowitt API ทุกๆ 3 ชั่วโมง (3 * 60 * 60 * 1000 milliseconds)
+
 const intervalId = setInterval(async () => {
   try {
     const response = await axios.get(apiUrl, { params });
@@ -157,14 +156,14 @@ const intervalId = setInterval(async () => {
 
     console.log('Fetched data from Ecowitt API:', data);
 
-    // ส่งข้อมูลไปยัง WebSocket ทุกครั้งที่ได้รับข้อมูลจาก API
+    
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(data));
       }
     });
 
-    // บันทึกข้อมูลลง MySQL
+    
     saveDataToDatabase(data);
 
   } catch (error) {
@@ -206,7 +205,7 @@ setInterval(async () => {
       throw new Error('No weather data returned');
     }
 
-    // บันทึกข้อมูลลงในฐานข้อมูล
+    
     await saveAccuWeatherData(weatherData);
 
     console.log('Weather data fetched and saved successfully:', weatherData);
@@ -218,14 +217,14 @@ setInterval(async () => {
 
 
 
-// ฟังก์ชั่นสำหรับบันทึกข้อมูลลง MySQL
+
 const queryAsync = util.promisify(db.query).bind(db);
 
 async function saveDataToDatabase(data) {
   try {
     const { outdoor, indoor, wind, rainfall, battery, pressure } = data;
 
-    // ตรวจสอบข้อมูลที่จำเป็น
+    
     if (!outdoor || !indoor || !wind || !rainfall || !battery || !pressure) {
       throw new Error("Missing required data (outdoor, indoor, wind, rainfall, battery, or pressure)");
     }
@@ -233,7 +232,7 @@ async function saveDataToDatabase(data) {
     const timestamp = Math.floor(Date.now() / 1000);
     const recordTime = new Date().toISOString().slice(0, 19).replace("T", " ");
   
-    // Step 1: Insert into weather_record
+    
     const weatherRecordQuery = `
       INSERT INTO weather_record (record_time, temperature, humidity, wind_speed, wind_direction) 
       VALUES (?, ?, ?, ?, ?)
@@ -241,24 +240,24 @@ async function saveDataToDatabase(data) {
 
     const weatherRecordResult = await queryAsync(weatherRecordQuery, [
       recordTime,
-      outdoor.temperature?.value || null,
-      outdoor.humidity?.value || null,
-      wind.wind_speed?.value || null,
-      wind.wind_direction?.value || null
+      outdoor.temperature?.value || 0,
+      outdoor.humidity?.value || 0,
+      wind.wind_speed?.value || 0,
+      wind.wind_direction?.value || 0
     ]);
 
-    const recordId = weatherRecordResult.insertId;  // รับค่า recordId จากผลลัพธ์การแทรกข้อมูลใน weather_record
+    const recordId = weatherRecordResult.insertId;  
 
     console.log('Weather record saved:', recordId);
 
-    // Step 2: Insert into outdoor_data
+    
     const outdoorQuery = `
       INSERT INTO outdoor_data (record_id, temperature, feels_like, app_temp, dew_point, humidity, wind_speed, wind_direction, rainfall, timestamp) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await queryAsync(outdoorQuery, [
-      recordId,  // ใช้ recordId ที่เพิ่งได้รับ
+      recordId,  
       outdoor.temperature?.value || 0,
       outdoor.feels_like?.value || 0,
       outdoor.app_temp?.value || 0,
@@ -272,41 +271,41 @@ async function saveDataToDatabase(data) {
 
     console.log('Outdoor data saved for record ID:', recordId);
 
-    // Step 3: Insert into battery_data
+    
     const batteryQuery = `
       INSERT INTO battery_data (record_id, sensor_array) 
       VALUES (?, ?)
     `;
 
     await queryAsync(batteryQuery, [
-      recordId,  // ใช้ recordId ที่ได้รับจาก weather_record
-      battery.sensor_array?.value || 0  // หากไม่มีข้อมูลให้ใช้ null
+      recordId,  
+      battery.sensor_array?.value || 0  
     ]);
 
     console.log('Battery data saved for record ID:', recordId);
 
-    // Step 4: Insert into pressure_data
+    
     const pressureQuery = `
       INSERT INTO pressure_data (record_id, relative, absolute) 
       VALUES (?, ?, ?)
     `;
 
     await queryAsync(pressureQuery, [
-      recordId,  // ใช้ recordId ที่ได้รับจาก weather_record
-      pressure.relative?.value || 0,  // หากไม่มีข้อมูลให้ใช้ null
-      pressure.absolute?.value || 0  // หากไม่มีข้อมูลให้ใช้ null
+      recordId,  
+      pressure.relative?.value || 0,  
+      pressure.absolute?.value || 0 
     ]);
 
     console.log('Pressure data saved for record ID:', recordId);
 
-    // Step 5: Insert into wind_data
+   
     const windQuery = `
       INSERT INTO wind_data (record_id, wind_speed, wind_gust, wind_direction) 
       VALUES (?, ?, ?, ?)
     `;
 
     await queryAsync(windQuery, [
-      recordId,  // ใช้ recordId ที่ได้รับจาก weather_record
+      recordId,  
       wind.wind_speed?.value || 0,
       wind.wind_gust?.value || 0,
       wind.wind_direction?.value || 0
@@ -322,11 +321,10 @@ async function saveDataToDatabase(data) {
 
 
 
-// Fetch the latest data from the database
-// Fetch the latest data from MySQL
+
 app.get('/accuweather', async (req, res) => {
   try {
-    const query = 'SELECT * FROM accuweather_data ORDER BY epoch_time DESC LIMIT 1'; // ดึงข้อมูลล่าสุดจากฐานข้อมูล
+    const query = 'SELECT * FROM accuweather_data ORDER BY epoch_time DESC LIMIT 1'; 
 
     db.query(query, (err, result) => {
       if (err) {
@@ -335,7 +333,7 @@ app.get('/accuweather', async (req, res) => {
       }
 
       if (result.length > 0) {
-        const latestWeatherData = result[0]; // ข้อมูลล่าสุด
+        const latestWeatherData = result[0]; 
         res.json(latestWeatherData);
       } else {
         res.status(404).json({ error: 'No weather data found' });
@@ -349,7 +347,7 @@ app.get('/accuweather', async (req, res) => {
 
 
 
-// Fetch data from AccuWeather API
+
 const fetchAccuWeatherData = async (locationKey, apiKey) => {
   const url = `http://dataservice.accuweather.com/currentconditions/v1/${locationKey}`;
   const params = { apikey: apiKey };
@@ -360,7 +358,7 @@ const fetchAccuWeatherData = async (locationKey, apiKey) => {
     if (response.data && response.data.length > 0) {
       const weatherData = response.data[0];
 
-      // Extract and transform data
+      
       const data = {
         localObservationDateTime: weatherData.LocalObservationDateTime || 'Unknown',
         epochTime: weatherData.EpochTime || Math.floor(Date.now() / 1000),
@@ -377,7 +375,7 @@ const fetchAccuWeatherData = async (locationKey, apiKey) => {
         link: weatherData.Link || null,
       };
       console.log('Processed weather data:', data);
-      // Save to the database
+     
       await saveAccuWeatherData(data);
       return data;
     } else {
@@ -389,7 +387,7 @@ const fetchAccuWeatherData = async (locationKey, apiKey) => {
   }
 };
 
-// Save AccuWeather data to MySQL
+
 const saveAccuWeatherData = async (data) => {
   const query = `
     INSERT INTO accuweather_data (
@@ -438,7 +436,7 @@ const saveAccuWeatherData = async (data) => {
   });
 };
 
-// Global error handler for unexpected errors
+
 app.use((err, req, res, next) => {
   console.error('Unexpected error:', err.message);
   res.status(500).json({ error: 'Internal server error' });
@@ -447,7 +445,7 @@ app.use((err, req, res, next) => {
 module.exports = app;
 
 //--------------------------------------------------------------------------------------------------------
-/// Save OpenWeather data to MySQL
+
 const saveOpenWeatherData = (db, weatherData) => {
   const query = `
     INSERT INTO openweather_data
@@ -472,7 +470,7 @@ const saveOpenWeatherData = (db, weatherData) => {
   });
 };
 
-// Fetch weather data from OpenWeather API
+
 const fetchOpenWeatherData = async (city, apiKey) => {
   try {
     const response = await fetch(
@@ -496,12 +494,12 @@ const fetchOpenWeatherData = async (city, apiKey) => {
     };
   } catch (error) {
     console.error('Error fetching data from OpenWeather API:', error.message);
-    throw error; // ขว้างข้อผิดพลาดกลับไป
+    throw error;
   }
 };
 
 
-// Endpoint to get the latest OpenWeather data from MySQL
+
 app.get('/latest-openweather', (req, res) => {
   const query = 'SELECT * FROM openweather_data ORDER BY timestamp DESC LIMIT 1';
 
@@ -513,7 +511,7 @@ app.get('/latest-openweather', (req, res) => {
 
     if (results.length > 0) {
       console.log('Latest weather data:', results[0]);
-      res.json(results[0]);  // ส่งข้อมูลล่าสุดไปยัง frontend
+      res.json(results[0]);  
     } else {
       res.status(404).json({ error: 'No weather data found' });
     }

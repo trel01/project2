@@ -1,114 +1,210 @@
 from flask import Flask, request, render_template
 import pickle
 import numpy as np
+import os
+from datetime import datetime
+import threading
+import time
 
 app = Flask(__name__)
 
-# โหลดโมเดลจาก pickle
-model_water_use = pickle.load(open(r"C:\project2\Water_Use\weather.pkl", 'rb'))
-model_humidity = pickle.load(open(r"C:\project2\Water_Use\humidity.pkl", 'rb'))
-model_temp = pickle.load(open(r"C:\project2\Water_Use\temp.pkl", 'rb'))
-model_wind_speed = pickle.load(open(r"C:\project2\Water_Use\wind_speed.pkl", 'rb'))
 
-# ตรวจสอบว่าโมเดลเป็น tuple หรือไม่
-print("Model Types:")
-print(f"Model Water Use: {type(model_water_use)}")
-print(f"Model Humidity: {type(model_humidity)}")
-print(f"Model Temp: {type(model_temp)}")
-print(f"Model Wind Speed: {type(model_wind_speed)}")
+all_models = {}
+model_lock = threading.Lock()
 
-# ถ้าโมเดลเป็น tuple ให้แยกโมเดลออกจาก tuple
-if isinstance(model_water_use, tuple):
-    model_water_use = model_water_use[0]
-if isinstance(model_humidity, tuple):
-    model_humidity = model_humidity[0]
-if isinstance(model_temp, tuple):
-    model_temp = model_temp[0]
-if isinstance(model_wind_speed, tuple):
-    model_wind_speed = model_wind_speed[0]
+# ---------- ฟังก์ชันโหลดโมเดล ----------
+def load_all_models():
+    print("\n🔄 กำลังโหลดโมเดลใหม่...")
+    base_path = r"C:\project2\Water_Use\model2"
+    model_files = ["humidity", "temp", "wind_speed", "weather"]
+    temp_models = {}
 
+    for hour in range(24):
+        time_str = f"{hour:02d}.00"
+        model_path = os.path.join(base_path, f"{time_str}_modele2")
+        models_per_hour = {}
+
+        if not os.path.exists(model_path):
+            print(f"⚠️ ไม่พบโฟลเดอร์: {model_path}")
+            continue
+
+        missing = False
+        for model_name in model_files:
+            file_path = os.path.join(model_path, f"{time_str}_{model_name}.pkl")
+            if not os.path.exists(file_path):
+                print(f"⚠️ ไม่พบไฟล์: {file_path}")
+                missing = True
+                continue
+            try:
+                with open(file_path, 'rb') as f:
+                    models_per_hour[model_name] = pickle.load(f)
+                print(f"✅ โหลด {file_path} สำเร็จ!")
+            except Exception as e:
+                print(f"❌ โหลด {file_path} ไม่สำเร็จ: {e}")
+                missing = True
+
+        if not missing and len(models_per_hour) == len(model_files):
+            temp_models[time_str] = models_per_hour
+            print(f"🕐 โมเดล {time_str} พร้อมใช้งาน!")
+        else:
+            print(f"⚠️ โมเดล {time_str} ไม่ครบ ไม่เพิ่มเข้า all_models")
+
+    with model_lock:
+        all_models.clear()
+        all_models.update(temp_models)
+    print("🚀 โหลดโมเดลทั้งหมดเสร็จแล้ว!\n")
+
+# ---------- Background Thread ----------
+def auto_reload_models(interval=3600):
+    while True:
+        load_all_models()
+        print(f"⏰ รอ {interval} วินาทีก่อนโหลดใหม่...\n")
+        time.sleep(interval)
+
+# ---------- เวลา ----------
+def get_time_slot():
+    current_hour = datetime.now().hour
+    return f"{current_hour:02d}.00"
+
+# ---------- Weather Dictionary ----------
+weather_dict = {
+    0: 'แจ่มใส', 
+    1: 'ค่อนข้างแจ่มใส', 
+    2: 'มีแดดเป็นส่วนใหญ่', 
+    3: 'แดดจ้า', 
+    4: 'มีเมฆมาก', 
+    5: 'มืดครึ้มและหม่นหมอง', 
+    6: 'มีเมฆเป็นช่วง ๆ', 
+    7: 'มีเมฆมากเป็นส่วนใหญ่', 
+    8: 'มีเมฆบางส่วน', 
+    9: 'หมอก', 
+    10: 'แดดจ้าแบบมีหมอกบาง', 
+    11: 'มีเมฆมากและมีฝนตกเป็นช่วง ๆ', 
+    12: 'ฝนตก ', 
+    13: 'ฝนโปรย / ฝนตกเป็นช่วง ๆ ', 
+    14: 'เย็น', 
+    15: 'ร้อน', 
+    16: 'มีลมแรง'
+}
+
+
+# ---------- Routes ----------
 @app.route('/')
-def hello_world():
+def home():
     return render_template("Water_Use.html")
-
-@app.route('/predict', methods=['POST', 'GET'])
+@app.route('/predict', methods=['POST'])
 def predict():
-    # รับข้อมูลที่ผู้ใช้กรอกจาก form
-    float_features = [float(x) for x in request.form.values()]
-    final = np.array([float_features])  
-
-    print("📌 Input Features:", float_features)
-    print("Final Input Array:", final)
-
-    # ตรวจสอบประเภทของโมเดล
-    print("Model Type after checking:", type(model_humidity))
-
     try:
-        # ทำนายผลลัพธ์จากโมเดลต่างๆ
-        pred_water_use = model_water_use.predict(final)[0]
-        pred_humidity = model_humidity.predict(final)[0]
-        pred_temp = model_temp.predict(final)[0]
-        pred_wind_speed = model_wind_speed.predict(final)[0]
+        form_values = list(request.form.values())
+        print(f"📋 ค่าที่รับจากฟอร์ม: {form_values}")
+
+        if not form_values or all(v.strip() == "" for v in form_values):
+            return "❌ กรุณากรอกข้อมูลให้ครบถ้วน"
+
+        float_features = [float(x) for x in form_values]
+        final_input = np.array([float_features])
+
+        selected_time = get_time_slot()
+
+        # 🔒 ใช้ lock อ่าน models
+        with model_lock:
+            models = all_models.get(selected_time)
+
+        if models is None:
+            return f"❌ ไม่พบโมเดลสำหรับ {selected_time}"
+
+        pred_humidity = models['humidity'].predict(final_input)[0]
+        pred_temp = models['temp'].predict(final_input)[0]
+        pred_wind_speed = models['wind_speed'].predict(final_input)[0]
+        pred_weather = models['weather'].predict(final_input)[0]
+
+        result = weather_dict.get(int(pred_weather), 'ไม่สามารถพยากรณ์ได้')
+
+        return render_template(
+            'Water_Use.html',
+            word="พยากรณ์อากาศวันนี้:",
+            answer="ข้อมูลที่กรอก:",
+            pred=result,
+            humidity_pred=f"{pred_humidity:.2f}%",
+            temp_pred=f"{pred_temp:.2f}°C",
+            wind_pred=f"{pred_wind_speed:.2f} m/s",
+            model_used=f"📌 โมเดลที่ใช้: {selected_time}"
+        )
     except Exception as e:
-        print("Error during prediction:", e)
-        return str(e)
+        return f"❌ เกิดข้อผิดพลาด: {e}"
 
-    print(f"🔹 Water Use: {pred_water_use}, Humidity: {pred_humidity}, Temp: {pred_temp}, Wind Speed: {pred_wind_speed}")
+@app.route('/predict_all', methods=['POST'])
+def predict_all():
+    try:
+        form_values = list(request.form.values())
+        print(f"📋 ค่าที่รับจากฟอร์ม: {form_values}")
 
-    # กำหนดผลลัพธ์ของการทำนาย
-    if 0 <= pred_water_use < 1:
-        result = 'ท้องฟ้าแจ่มใส'
-    elif 1 <= pred_water_use < 2:
-        result = 'มีเมฆมาก'
-    elif 2 <= pred_water_use < 3:
-        result = 'หนาว'
-    elif 3 <= pred_water_use < 4:
-        result = 'มืดครึ้ม อึมครึม'
-    elif 4 <= pred_water_use < 5:
-        result = 'หมอก'
-    elif 5 <= pred_water_use < 6:
-        result = 'แดดมัว มีหมอกควัน'
-    elif 6 <= pred_water_use < 7:
-        result = 'ร้อน'
-    elif 7 <= pred_water_use < 8:
-        result = 'มีเมฆเป็นช่วง ๆ'
-    elif 8 <= pred_water_use < 9:
-        result = 'ค่อนข้างแจ่มใส'
-    elif 9 <= pred_water_use < 10:
-        result = 'มีเมฆมากและฝนตกเป็นช่วง ๆ'
-    elif 10 <= pred_water_use < 11:
-        result = 'มีเมฆมาก'
-    elif 11 <= pred_water_use < 12:
-        result = 'แดดจัดเป็นส่วนใหญ่'
-    elif 12 <= pred_water_use < 13:
-        result = 'มีเมฆบางส่วน'
-    elif 13 <= pred_water_use < 14:
-        result = 'ฝนตก'
-    elif 14 <= pred_water_use < 15:
-        result = 'ฝนโปรยปราย'
-    elif 15 <= pred_water_use < 16:
-        result = 'แดดจ้า'
-    elif 16 <= pred_water_use < 17:
-        result = 'ลมแรง'
-    else:
-        result = 'ผลการทำนายไม่สามารถระบุได้'
+        if not form_values or all(v.strip() == "" for v in form_values):
+            return "❌ กรุณากรอกข้อมูลให้ครบถ้วน"
 
-    # ส่งข้อมูลไปที่หน้า HTML
-    return render_template(
-        'Water_Use.html',
-        word='พยากรณ์อากาศวันนี้:',
-        answer='ข้อมูลที่กรอก:',
-        a0=float_features[0], a1=float_features[1], a2=float_features[2], a3=float_features[3],
-        a4=float_features[4], a5=float_features[5], a6=float_features[6], a7=float_features[7],
-        a8=float_features[8], a9=float_features[9], a10=float_features[10], a11=float_features[11],
-        a12=float_features[12], a13=float_features[13], a14=float_features[14], a15=float_features[15],
-        a16=float_features[16], a17=float_features[17],                 
-        pred=result,  
-        humidity_pred=f"ความชื้นที่คาดการณ์: {pred_humidity:.2f}%",
-        temp_pred=f"อุณหภูมิที่คาดการณ์: {pred_temp:.2f}°C",
-        wind_pred=f"ความเร็วลมที่คาดการณ์: {pred_wind_speed:.2f} m/s",
-        bhai=""
-    )
+        float_features = [float(x) for x in form_values]
+        final_input = np.array([float_features])
+
+        
+        selected_time = get_time_slot()
+        with model_lock:
+            current_models = all_models.get(selected_time)
+
+        if current_models is None:
+            return f"❌ ไม่พบโมเดลสำหรับ {selected_time}"
+
+        pred_humidity = current_models['humidity'].predict(final_input)[0]
+        pred_temp = current_models['temp'].predict(final_input)[0]
+        pred_wind_speed = current_models['wind_speed'].predict(final_input)[0]
+        pred_weather = current_models['weather'].predict(final_input)[0]
+        result = weather_dict.get(int(pred_weather), 'ไม่สามารถพยากรณ์ได้')
+
+        
+        pred_humidity = min(max(pred_humidity, 30.5), 98.4)
+        pred_temp = min(max(pred_temp, 12.6), 36.8)
+        pred_wind_speed = min(max(pred_wind_speed, 0), 5.2)
+
+       
+        valid_times = ['00.00', '03.00', '06.00', '09.00', '12.00', '15.00', '18.00', '21.00']
+        results = []
+        with model_lock:
+            for time_str, models in all_models.items():
+                if time_str in valid_times:
+                    try:
+                        pred_humidity_all = min(max(models['humidity'].predict(final_input)[0], 30.5), 98.4)
+                        pred_temp_all = min(max(models['temp'].predict(final_input)[0], 12.6), 36.8)
+                        pred_wind_speed_all = min(max(models['wind_speed'].predict(final_input)[0], 0), 5.2)
+                        pred_weather_all = models['weather'].predict(final_input)[0]
+
+                        result_text = weather_dict.get(int(pred_weather_all), 'ไม่สามารถพยากรณ์ได้')
+
+                        results.append({
+                            'time': time_str,
+                            'humidity': f"{pred_humidity_all:.2f}%",
+                            'temp': f"{pred_temp_all:.2f}°C",
+                            'wind': f"{pred_wind_speed_all:.2f} m/s",
+                            'weather': result_text
+                        })
+                    except Exception as e:
+                        print(f"❌ พยากรณ์ {time_str} ล้มเหลว: {e}")
+                        continue
+
+        
+        return render_template(
+            'Water_Use.html',
+            word="พยากรณ์อากาศขณะนี้:",
+            pred=result,
+            humidity_pred=f"{pred_humidity:.2f}%",
+            temp_pred=f"{pred_temp:.2f}°C",
+            wind_pred=f"{pred_wind_speed:.2f} m/s",
+            model_used=f"📌 โมเดลที่ใช้: {selected_time}",
+            results=results,
+            input_data=form_values
+        )
+    except Exception as e:
+        return f"❌ เกิดข้อผิดพลาด: {e}"
 
 if __name__ == '__main__':
+    load_all_models()
+    threading.Thread(target=auto_reload_models, args=(3600,), daemon=True).start()
     app.run(debug=True, port=5030)

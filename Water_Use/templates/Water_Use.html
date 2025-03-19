@@ -11,39 +11,120 @@
   <link href="./static/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
   <link href="./static/css2/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
   <style>
-     body {
-        font-family: Arial, sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f7fc;
+      margin: 0;
+      padding: 0;
     }
 
     .weather-container {
-        width: 750px;
-        margin: 2px auto;
+      width: 90%;
+      max-width: 1200px;
+      margin: 30px auto;
     }
 
     .weather-box {
-        display: flex;
-        align-items: center;
-        background: #e0efff;
-        border-radius: 10px;
-        margin: 10px 0;
-        padding-left: 20px;
-        box-shadow: 2px 2px 10px rgba(85, 3, 3, 0.2);
+      display: flex;
+      align-items: center;
+      background: #e0efff;
+      border-radius: 10px;
+      margin: 10px 0;
+      padding: 15px 20px;
+      box-shadow: 2px 2px 10px rgba(85, 3, 3, 0.1);
     }
 
     .weather-title {
-        background: #3078c6;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        margin-right: 50px;
-        font-size: 16px;
-        font-weight: bold;
+      background: #3078c6;
+      color: white;
+      padding: 12px 0;
+      border-radius: 5px;
+      font-size: 18px;
+      font-weight: 600;
+      margin-right: 20rem;
+      flex: 0 0 160px;
+      text-align: center;
     }
 
     .weather-info {
-        flex-grow: 1;
-        padding-left: 100px;
-        font-size: 18px;
+      flex-grow: 1;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.6;
+      padding-left: 30px;
+      color: #333;
+    }
+
+    .weather-container2 {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      padding: 20px;
+      overflow-x: auto;
+      width: 120%;
+      gap: 20px;
+      margin-left: -5.5rem;
+    }
+
+    .weather-card {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      width: 250px;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+      font-weight: 400;
+    }
+
+    .weather-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+    }
+
+    .weather-time {
+      font-size: 1.4em;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .weather-icon {
+      margin: 10px 0;
+    }
+
+    .weather-temp {
+      font-size: 1.8em;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .weather-humidity,
+    .weather-wind {
+      font-size: 1.2em;
+      font-weight: 400;
+    }
+
+    .weather-status {
+      margin-top: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 768px) {
+      .weather-container2 {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .weather-card {
+        width: 90%;
+        margin-bottom: 20px;
+      }
     }
   </style>
 
@@ -51,10 +132,6 @@
 </head>
 
 <body>
-
-
-
-
   <script>
     function getWeatherIcon(description) {
       if (description.includes("rain")) return "🌧️";
@@ -76,7 +153,7 @@
     }
 
     // 🔹 AccuWeather API
-    const accuweatherKey = 'iDXG5WIkiNgiZwOVEZpAS2USEAecLoiW'; // ตรวจสอบ API Key
+    const accuweatherKey = 'iDXG5WIkiNgiZwOVEZpAS2USEAecLoiW'; 
     const accuweatherLocationKey = '319122';
     const accuweatherUrl = `https://dataservice.accuweather.com/currentconditions/v1/${accuweatherLocationKey}?apikey=${accuweatherKey}&details=true`;
 
@@ -124,16 +201,16 @@
         document.getElementById('weather2').innerText = "OpenWeather: ไม่สามารถโหลดข้อมูลได้";
       });
 
-      document.addEventListener("DOMContentLoaded", async function () {
-    const apiUrl = "https://api.ecowitt.net/api/v3/device/real_time";
-    const params = {
+    document.addEventListener("DOMContentLoaded", async function () {
+      const apiUrl = "https://api.ecowitt.net/api/v3/device/real_time";
+      const params = {
         application_key: "F4EAE399ED0BDAB7E0B03462D641DEB2",
         api_key: "7d76f688-062e-45ae-8ddc-7c9bd9c3598c",
         mac: "08:F9:E0:78:0C:71",
         call_back: "all"
-    };
+      };
 
-    try {
+      try {
         const queryString = new URLSearchParams(params).toString();
         const response = await fetch(`${apiUrl}?${queryString}`);
         const result = await response.json();
@@ -141,11 +218,11 @@
         console.log("🔥 API Response:", result);
 
         if (result.code !== 0) {
-            throw new Error("❌ Error fetching data: " + result.message);
+          throw new Error("❌ Error fetching data: " + result.message);
         }
 
         if (!result.data) {
-            throw new Error("❌ API ไม่มีข้อมูล (data == undefined)");
+          throw new Error("❌ API ไม่มีข้อมูล (data == undefined)");
         }
 
         const outdoor = result.data.outdoor || {};
@@ -158,268 +235,246 @@
         console.log("💨 Wind Data:", wind);
         console.log("☀️ Solar Data:", solar);
 
-        // ฟังก์ชันช่วยดึงค่าจาก Object
         const getValue = (obj, key) => obj?.[key]?.value ?? "N/A";
-
-        // ✅ ตรวจสอบค่าอุณหภูมิ และแปลงหน่วยถ้าจำเป็น
         let temperature = getValue(outdoor, "temperature");
 
-        if (temperature !== "N/A" && temperature > 60) {  
-            console.log("⚠️ ค่าอุณหภูมิสูงเกินไป อาจเป็นฟาเรนไฮต์ แปลงเป็นเซลเซียส...");
-            temperature = ((temperature - 32) * 5/9).toFixed(2); // แปลงเป็น °C
+        if (temperature !== "N/A" && temperature > 60) {
+          console.log("⚠️ ค่าอุณหภูมิสูงเกินไป อาจเป็นฟาเรนไฮต์ แปลงเป็นเซลเซียส...");
+          temperature = ((temperature - 32) * 5 / 9).toFixed(2); 
         }
 
-        // ✅ แปลงความเร็วลมจาก m/s → km/h
         const windSpeedMps = getValue(wind, "wind_speed");
         const windSpeedKmh = windSpeedMps !== "N/A" ? (windSpeedMps * 3.6).toFixed(2) : "N/A";
 
-        // Mapping ค่าจาก API → HTML (เหมือนเดิม ยกเว้น temperature ที่แก้ไขแล้ว)
         const dataMap = {
-            "Establishment_of_a_community_water_supply_system": temperature, // ใช้ค่าอุณหภูมิที่แก้ไขแล้ว
-            "Providing clean water to distribute in case of drought1": getValue(outdoor, "feels_like"),
-            "Establishment_of_a_community_water_supply_system2": getValue(outdoor, "dew_point"),
-            "Providing clean water to distribute in case of drought3": getValue(outdoor, "humidity"),
-            "Establishment_of_a_community_water_supply_system4": temperature, // ใช้ค่าอุณหภูมิที่แก้ไขแล้ว
-            "Providing clean water to distribute in case of drought5": getValue(outdoor, "humidity"),
-            "Establishment_of_a_community_water_supply_system6": getValue(solar, "solar"),
-            "Providing clean water to distribute in case of drought7": getValue(solar, "uvi"),
-            "Establishment_of_a_community_water_supply_system8": getValue(rainfall, "rain_rate"),
-            "Providing clean water to distribute in case of drought9": getValue(rainfall, "daily"),
-            "Establishment_of_a_community_water_supply_system10": getValue(rainfall, "event"),
-            "Providing clean water to distribute in case of drought11": getValue(rainfall, "hourly"),
-            "Establishment_of_a_community_water_supply_system12": getValue(rainfall, "weekly"),
-            "Providing clean water to distribute in case of drought13": getValue(rainfall, "monthly"),
-            "Establishment_of_a_community_water_supply_system14": getValue(rainfall, "yearly"),
-            "Providing clean water to distribute in case of drought15": windSpeedMps,
-            "Establishment_of_a_community_water_supply_system16": getValue(wind, "wind_gust"),
-            "Establishment_of_a_community_water_supply17": getValue(wind, "wind_gust"),
-           
+          "Establishment_of_a_community_water_supply_system": 88, 
+          "Providing clean water to distribute in case of drought1": temperature,
+          "Establishment_of_a_community_water_supply_system2": getValue(outdoor, "feels_like"),
+          "Providing clean water to distribute in case of drought3": getValue(outdoor, "dew_point"),
+          "Establishment_of_a_community_water_supply_system4": getValue(outdoor, "humidity"), 
+          "Providing clean water to distribute in case of drought5": getValue(solar, "solar"),
+          "Establishment_of_a_community_water_supply_system6": getValue(solar, "uvi"),
+          "Providing clean water to distribute in case of drought7": getValue(rainfall, "rain_rate"),
+          "Establishment_of_a_community_water_supply_system8": getValue(rainfall, "daily"),
+          "Providing clean water to distribute in case of drought9": getValue(rainfall, "event"),
+          "Establishment_of_a_community_water_supply_system10": getValue(rainfall, "hourly"),
+          "Providing clean water to distribute in case of drought11": getValue(rainfall, "weekly"),
+          "Establishment_of_a_community_water_supply_system12": getValue(rainfall, "weekly"),
+          "Providing clean water to distribute in case of drought13": windSpeedKmh,
+          "Establishment_of_a_community_water_supply_system14": getValue(wind, "wind_gust"),
+          "Providing clean water to distribute in case of drought15": getValue(wind, "wind_direction"),
+          "Establishment_of_a_community_water_supply_system16": getValue(pressure, "relative"),
+          "Establishment_of_a_community_water_supply17": getValue(pressure, "absolute"),
+
         };
 
-        // อัปเดตค่าทุกฟิลด์ตามที่กำหนดใน `dataMap`
         Object.keys(dataMap).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = dataMap[id];
+          const el = document.getElementById(id);
+          if (el) el.value = dataMap[id];
         });
-
-        // แสดงค่า Temp, Humidity, Wind Speed บนหน้าเว็บ
         document.getElementById("temperature").textContent = temperature;
         document.getElementById("humidity").textContent = getValue(outdoor, "humidity");
         document.getElementById("windSpeed").textContent = windSpeedKmh;
 
         console.log("✅ อัปเดตค่าฟอร์มเรียบร้อย!");
-    } catch (error) {
+      } catch (error) {
         console.error(error);
-    }
-});
+      }
+    });
 
 
   </script>
 
-
-
-  <nav class="green" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">Weather Forecasting System
-        Using Reference Devices Combined with Machine Learning Processing</a></div>
-  </nav>
-
-  <div class="section no-pad-bot" id="index-banner">
-    <div class="container">
-      <br><br>
-      <h1 class="header center blue-text">ทำนายสภาพอากาศ </h1>
-      <div class="row center">
-        <h5 class="header col s12 light">ทำนายผลของสภาพอากาศ</h5>
-      </div>
-
+  <div class="row">
+    <form action='/predict_all' method="post" class="col s12">
       <div class="row">
-        <form action='/predict' method="post" class="col s12">
-          <div class="row">
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Temperature(℃)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system"
-                id="Establishment_of_a_community_water_supply_system" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a0}}</b></div>
-            </div>
+        <!-- Main Content -->
+        <div class="container">
+          <h1 class="header center blue-text">พยากรณ์อากาศ</h1>
+          <h5 class="header center light">ทำนายผลของสภาพอากาศด้วย Machine Learning</h5>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Feels Like(℃)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought1"
-                id="Providing clean water to distribute in case of drought1" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a1}}</b></div>
+          <div class="weather-container2">
+            {% for result in results %}
+            <div class="weather-card">
+              <div class="weather-time">{{ result.time }}</div>
+              <div class="weather-icon">
+                {% if result.weather == "Rain" %}
+                <i class="fas fa-cloud-showers-heavy rain"></i>
+                {% elif result.weather == "Heavy Rain" %}
+                <i class="fas fa-bolt heavy-rain"></i>
+                {% else %}
+                <i class="fas fa-cloud"></i>
+                {% endif %}
+              </div>
+              <div class="weather-temp">{{ result.temp }}</div>
+              <div class="weather-humidity">💧 {{ result.humidity }}</div>
+              <div class="weather-wind">💨 {{ result.wind }}</div>
+              <div class="weather-status">{{ result.weather }}</div>
             </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Dew Point(℃)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system2"
-                id="Establishment_of_a_community_water_supply_system2" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a2}}</b></div>
-            </div>
+            {% endfor %}
+          </div>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Humidity(%)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought3"
-                id="Providing clean water to distribute in case of drought3" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a3}}</b></div>
+          <div class="weather-container">
+            <div class="weather-box">
+              <div class="weather-title">AccuWeather</div>
+              <div class="weather-info" id="weather1">Loading...</div>
             </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Temperature(℃)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system4"
-                id="Establishment_of_a_community_water_supply_system4" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a4}}</b></div>
+            <div class="weather-box">
+              <div class="weather-title">OpenWeather</div>
+              <div class="weather-info" id="weather2">Loading...</div>
             </div>
+            <div class="weather-box">
+              <div class="weather-title">Ecowitt</div>
+              <div class="weather-info" id="weather3">
+                🌡️ <span id="temperature">-</span> °C 💧 <span id="humidity">-</span> % 💨 <span
+                  id="windSpeed">-</span> m/s
+              </div>
+            </div>
+            <div class="weather-box">
+              <div class="weather-title">พยากรณ์อากาศ</div>
+              <div class="weather-info" id="weather4">
+                🌡️ <span id="temp">{{temp_pred}}</span> 💧 <span id="humidity2">{{humidity_pred}}</span> 💨 <span
+                  id="windSpeed2">{{wind_pred}}</span> <span id="t">{{pred}}</span>
+              </div>
+            </div>
+          </div>
+          <div class="row center">
+            <button type="submit" class="btn-large waves-effect waves-light blue"><b>ประมวลผล</b></button>
+          </div>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Humidity(%)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought5"
-                id="Providing clean water to distribute in case of drought5" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a5}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Solar(W/m²)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system6"
-                id="Establishment_of_a_community_water_supply_system6" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a6}}</b></div>
-            </div>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>UVI</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought7"
-                id="Providing clean water to distribute in case of drought7" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a7}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Rain Rate(in/hr)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system8"
-                id="Establishment_of_a_community_water_supply_system8" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a8}}</b></div>
-            </div>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Daily(in)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought9"
-                id="Providing clean water to distribute in case of drought9" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a9}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Event(in)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system10"
-                id="Establishment_of_a_community_water_supply_system10" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a10}}</b></div>
-            </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+            <br><br>
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system"
+              id="Establishment_of_a_community_water_supply_system" value="{{answer}}{{a0}}">
+          </div>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Hourly(in)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought11"
-                id="Providing clean water to distribute in case of drought11" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a11}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Weekly(in)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system12"
-                id="Establishment_of_a_community_water_supply_system12" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a12}}</b></div>
-            </div>
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></b></label>
+            <br><br>
+            <input type="hidden" name="Providing clean water to distribute in case of drought1"
+              id="Providing clean water to distribute in case of drought1" value="{{answer}}{{a1}}">
+          </div>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Monthly(in)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought13"
-                id="Providing clean water to distribute in case of drought13" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a13}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Yearly(in)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system14"
-                id="Establishment_of_a_community_water_supply_system14" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a14}}</b></div>
-            </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
 
-            <div class="input-field col s4">
-              <label for="Providing clean water to distribute in case of drought"><b>Wind Speed(mph)</b></label>
-              <br><br>
-              <input placeholder="" name="Providing clean water to distribute in case of drought15"
-                id="Providing clean water to distribute in case of drought15" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a15}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Wind Gust(mph)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply_system16"
-                id="Establishment_of_a_community_water_supply_system16" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a16}}</b></div>
-            </div>
-            <div class="input-field col s4">
-              <label for="Establishment_of_a_community_water_supply_system"><b>Wind Gust(mph)</b></label>
-              <br><br>
-              <input placeholder="" name="Establishment_of_a_community_water_supply17"
-                id="Establishment_of_a_community_water_supply17" type="text" class="validate">
-              <div class="green-text"><b>{{answer}}{{a17}}</b></div>
-            </div>
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system2"
+              id="Establishment_of_a_community_water_supply_system2" value="{{answer}}{{a2}}">
+          </div>
 
-              
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
 
-           
-   
+            <input type="hidden" name="Providing clean water to distribute in case of drought3"
+              id="Providing clean water to distribute in case of drought3" value="{{answer}}{{a3}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></b></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system4"
+              id="Establishment_of_a_community_water_supply_system4" value="{{answer}}{{a4}}">
+          </div>
+
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
+
+            <input type="hidden" name="Providing clean water to distribute in case of drought5"
+              id="Providing clean water to distribute in case of drought5" value="{{answer}}{{a5}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system6"
+              id="Establishment_of_a_community_water_supply_system6" value="{{answer}}{{a6}}">
+          </div>
+
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
+
+            <input type="hidden" name="Providing clean water to distribute in case of drought7"
+              id="Providing clean water to distribute in case of drought7" value="{{answer}}{{a7}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system8"
+              id="Establishment_of_a_community_water_supply_system8" value="{{answer}}{{a8}}">
+          </div>
+
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
+
+            <input type="hidden" name="Providing clean water to distribute in case of drought9"
+              id="Providing clean water to distribute in case of drought9" value="{{answer}}{{a9}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system10"
+              id="Establishment_of_a_community_water_supply_system10" value="{{answer}}{{a10}}">
+          </div>
+
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
+
+            <input type="hidden" name="Providing clean water to distribute in case of drought11"
+              id="Providing clean water to distribute in case of drought11" value="{{answer}}{{a11}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system12"
+              id="Establishment_of_a_community_water_supply_system12" value="{{answer}}{{a12}}">
+          </div>
+
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
+
+            <input type="hidden" name="Providing clean water to distribute in case of drought13"
+              id="Providing clean water to distribute in case of drought13" value="{{answer}}{{a13}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system14"
+              id="Establishment_of_a_community_water_supply_system14" value="{{answer}}{{a14}}">
+          </div>
+
+          <div class="input-field col s4">
+            <label for="Providing clean water to distribute in case of drought"></label>
+
+            <input type="hidden" name="Providing clean water to distribute in case of drought15"
+              id="Providing clean water to distribute in case of drought15" value="{{answer}}{{a15}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply_system16"
+              id="Establishment_of_a_community_water_supply_system16" value="{{answer}}{{a16}}">
+          </div>
+          <div class="input-field col s4">
+            <label for="Establishment_of_a_community_water_supply_system"></label>
+
+            <input type="hidden" name="Establishment_of_a_community_water_supply17"
+              id="Establishment_of_a_community_water_supply17" value="{{answer}}{{a17}}">
+          </div>
+          <span id="Establishment_of_a_community_water_supply_system"></span>
 
 
           <!-- Add other fields here as per your original form -->
 
-          <div class="row center">
-            <button type="submit" class="btn-large waves-effect waves-light blue"><b>ประมวลผล</b></button>
-          </div>
-      </div>
-      </form>
-    </div>
 
-    <h5 class="header center black-text">{{word}}</h5>
-    <h5 class="header center orange-text">{{pred}}</h5>
-    <h5 class="header center orange-text">{{humidity_pred}}</h5>
-    <h5 class="header center orange-text">{{temp_pred}}</h5>
-    <h5 class="header center orange-text">{{wind_pred}}</h5>
-  </div>
-  </div>
-  <div class="weather-container">
-    <div class="weather-box">
-        <div class="weather-title">AccuWeather</div>
-        <div class="weather-info" id="weather1">Loading...</div>
-    </div>
-    <div class="weather-box">
-        <div class="weather-title">OpenWeather</div>
-        <div class="weather-info" id="weather2">Loading...</div>
-    </div>
-    <div class="weather-box">
-        <div class="weather-title">Ecowitt</div>
-        <div class="weather-info" id="weather3">
-            🌡️ <span id="temperature">-</span> °C 💧 <span id="humidity">-</span> % 💨 <span id="windSpeed">-</span> m/s 
         </div>
-    </div>
-</div>
+    </form>
+  </div>
+  </div>
+  </div>
 
-  <footer class="page-footer green">
-    <div class="container">
-      <div class="row">
-        <div class="col l6 s12"></div>
-      </div>
-    </div>
-    <div class="footer-copyright">
-      <div class="container">
-        <a class="orange-text text-lighten-3" href="https://materializecss.com"></a>
-      </div>
-    </div>
-  </footer>
+
+
 
   <!--  Scripts-->
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>

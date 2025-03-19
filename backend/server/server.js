@@ -40,8 +40,6 @@ const fetchDataFromTable = (weather_data, res) => {
     res.json(results);
   });
 };
-
-
 app.get('/outdoor-data', (req, res) => {
   db.query('SELECT * FROM outdoor_data ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
@@ -53,8 +51,6 @@ app.get('/outdoor-data', (req, res) => {
     }
   });
 });
-
-
 app.get('/indoor-data', (req, res) => {
   db.query('SELECT * FROM indoor_data ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
@@ -65,7 +61,6 @@ app.get('/indoor-data', (req, res) => {
     }
   });
 });
-
 app.get('/solar-and-uvi', (req, res) => {
   db.query('SELECT * FROM solar_and_uvi ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
@@ -77,8 +72,6 @@ app.get('/solar-and-uvi', (req, res) => {
     }
   });
 });
-
-
 app.get('/rainfall-data', (req, res) => {
   db.query('SELECT * FROM rainfall_data ORDER BY timestamp DESC LIMIT 1', (err, results) => {
     if (err) {
@@ -530,14 +523,10 @@ app.get('/latest-openweather', (req, res) => {
 
 // Global error handler for unexpected errors
 app.use((err, req, res, next) => {
-  // กรณีเกิดข้อผิดพลาดที่ไม่คาดคิด
   console.error('Unexpected error:', err.message);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-
-
-// Start Server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

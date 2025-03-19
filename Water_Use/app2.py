@@ -38,7 +38,13 @@ def load_all_models():
                 continue
             try:
                 with open(file_path, 'rb') as f:
-                    models_per_hour[model_name] = pickle.load(f)
+                    model_data = pickle.load(f)
+                    # ✅ ตรวจสอบว่าเป็น tuple หรือเปล่า
+                    if isinstance(model_data, tuple):
+                        print(f"ℹ️ พบ tuple ใน {file_path}, กำลังดึง model จาก index [0]")
+                        models_per_hour[model_name] = model_data[0]
+                    else:
+                        models_per_hour[model_name] = model_data
                 print(f"✅ โหลด {file_path} สำเร็จ!")
             except Exception as e:
                 print(f"❌ โหลด {file_path} ไม่สำเร็จ: {e}")
@@ -55,6 +61,7 @@ def load_all_models():
         all_models.clear()
         all_models.update(temp_models)
     print("🚀 โหลดโมเดลทั้งหมดเสร็จแล้ว!\n")
+
 
 # ---------- Background Thread ----------
 def auto_reload_models(interval=3600):
